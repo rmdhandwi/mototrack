@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "468992418302",
+    "project_id": "mototrack-33904",
+    "storage_bucket": "mototrack-33904.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:468992418302:android:863027ec6ed346554260af",
+        "android_client_info": {
+          "package_name": "com.example.mototrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtQRpzlN2tryHwDl_o8DSmAkJgJXZl3bc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

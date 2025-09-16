@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">mototrack</string>
+    <string name="mapbox_access_token">pk.eyJ1Ijoid2FoeXVub3ZpYW4iLCJhIjoiY21leXk1MmQ1MWRzaDJrc2h2OGdnMXlpOCJ9.R370b9KcEpGgcv3BsVQ3-w</string>
+</resources>

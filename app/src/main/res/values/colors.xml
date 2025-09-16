@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Global Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Primary Brand -->
+    <color name="primary">#009688</color>
+    <color name="primary_dark">#00695C</color>
+    <color name="primary_light">#80CBC4</color>
+
+    <!-- Secondary Brand -->
+    <color name="secondary">#FF9800</color>
+    <color name="secondary_dark">#F57C00</color>
+    <color name="secondary_light">#FFB74D</color>
+
+    <!-- Neutral Grays -->
+    <color name="gray_50">#FAFAFA</color>
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_700">#616161</color>
+    <color name="gray_900">#212121</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary_light">#212121</color>
+    <color name="text_secondary_light">#616161</color>
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#BDBDBD</color>
+
+    <!-- Bottom Navigation Indicator -->
+    <color name="bottom_nav_indicator_light">#009688</color>
+    <color name="bottom_nav_indicator_dark">#80CBC4</color>
+
+    <!-- Status Colors -->
+    <color name="card_on">#4CAF50</color>
+    <color name="card_off">#E0E0E0</color>
+    <color name="icon_on">#FFFFFF</color>
+    <color name="icon_off">#9E9E9E</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+</resources>

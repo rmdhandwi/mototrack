@@ -1,0 +1,25 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Base.Theme.Mototrack" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Light Mode Colors -->
+        <item name="colorPrimary">#009688</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+
+        <item name="colorSecondary">#FF9800</item>
+        <item name="colorOnSecondary">#000000</item>
+
+        <item name="colorSurface">#F5F5F5</item>
+        <item name="colorOnSurface">#212121</item>
+
+        <item name="android:windowBackground">#FAFAFA</item>
+        <item name="android:statusBarColor">#00695C</item>
+        <item name="android:navigationBarColor">#00695C</item>
+    </style>
+
+    <style name="BottomNavIndicatorStyle">
+        <item name="android:color">#009688</item>
+    </style>
+
+    <style name="Theme.Mototrack" parent="Base.Theme.Mototrack"/>
+</resources>
+
