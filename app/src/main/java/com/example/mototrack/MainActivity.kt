@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity() {
             }
             activeFragment = current
         } else {
-            super.onBackPressed() // keluar aplikasi
+            super.onBackPressed() // keluar aplikasi iya
         }
     }
 }
