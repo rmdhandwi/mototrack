@@ -68,10 +68,10 @@ class LoginActivity : AppCompatActivity() {
             false
         }
 
-        binding.tvDaftar.setOnClickListener {
-            val intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
-        }
+//        binding.tvDaftar.setOnClickListener {
+//            val intent = Intent(this, RegisterActivity::class.java)
+//            startActivity(intent)
+//        }
 
         // login button
         binding.btnLogin.setOnClickListener {

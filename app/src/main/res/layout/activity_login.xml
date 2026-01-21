@@ -68,29 +68,29 @@
             android:layout_marginBottom="16dp"
             tools:ignore="HardcodedText,VisualLintButtonSize" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:gravity="center"-->
+<!--            android:orientation="horizontal">-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textAlignment="textEnd"
-                android:layout_marginEnd="5dp"
-                android:text="Belum punya akun?"
-                tools:ignore="HardcodedText" />
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_weight="1"-->
+<!--                android:textAlignment="textEnd"-->
+<!--                android:layout_marginEnd="5dp"-->
+<!--                android:text="Belum punya akun?"-->
+<!--                tools:ignore="HardcodedText" />-->
 
-            <TextView
-                android:id="@+id/tvDaftar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Daftar"
-                android:textStyle="bold"
-                tools:ignore="HardcodedText" />
-        </LinearLayout>
+<!--            <TextView-->
+<!--                android:id="@+id/tvDaftar"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_weight="1"-->
+<!--                android:text="Daftar"-->
+<!--                android:textStyle="bold"-->
+<!--                tools:ignore="HardcodedText" />-->
+<!--        </LinearLayout>-->
     </LinearLayout>
 </LinearLayout>

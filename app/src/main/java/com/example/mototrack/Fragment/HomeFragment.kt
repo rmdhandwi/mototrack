@@ -24,11 +24,12 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val database = FirebaseDatabase.getInstance().reference
-    private var currentMotor = ModelMotor() // menyimpan status lokal
-
-    // Firebase reference & listener sebagai properti kelas
     private val motorRef = database.child("Motor")
+
     private lateinit var motorListener: ValueEventListener
+
+    private var currentMotor = ModelMotor()
+    private var isUserAction = false // 🔒 cegah konflik realtime
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,84 +44,137 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
-    /** Load data motor dari Firebase */
+    // ================= FIREBASE REALTIME =================
     private fun loadMotorRealtime() {
         motorListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val motor = snapshot.getValue(ModelMotor::class.java)
-                motor?.let {
+                if (_binding == null || isUserAction) return
+
+                snapshot.getValue(ModelMotor::class.java)?.let {
                     currentMotor = it
-                    if (_binding != null) { // pastikan view masih aktif
-                        updateUI(it)
-                    }
+                    updateUI(it)
                 }
+
+
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Error: ${error.message}", Toast.LENGTH_SHORT).show()
+                context?.let {
+                    Toast.makeText(it, "Firebase error: ${error.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
         motorRef.addValueEventListener(motorListener)
     }
 
-    /** Setup klik Card untuk toggle status */
+    // ================= CLICK HANDLER =================
     private fun setupClickListeners() {
+
         binding.cardKelistrikan.setOnClickListener {
-            val newStatus = !currentMotor.statusKelistrikan
-            currentMotor = currentMotor.copy(statusKelistrikan = newStatus)
-            updateCardTint(binding.cardKelistrikan, binding.iconKelistrikan, binding.tvKelistrikanStatus, newStatus)
-            animateCardClick(binding.cardKelistrikan)
-            updateMotorStatus("statusKelistrikan", newStatus)
+            toggleStatus(
+                field = "statusKelistrikan",
+                newValue = !currentMotor.statusKelistrikan
+            )
         }
 
         binding.cardStarter.setOnClickListener {
-            val newStatus = !currentMotor.statusStarter
-            currentMotor = currentMotor.copy(statusStarter = newStatus)
-            updateCardTint(binding.cardStarter, binding.iconStarter, binding.tvStarterStatus, newStatus)
-            animateCardClick(binding.cardStarter)
-            updateMotorStatus("statusStarter", newStatus)
+            toggleStatus(
+                field = "statusStarter",
+                newValue = !currentMotor.statusStarter
+            )
         }
 
         binding.cardBuzzer.setOnClickListener {
-            val newStatus = !currentMotor.statusBuzzer
-            currentMotor = currentMotor.copy(statusBuzzer = newStatus)
-            updateCardTint(binding.cardBuzzer, binding.iconBuzzer, binding.tvBuzzerStatus, newStatus)
-            animateCardClick(binding.cardBuzzer)
-            updateMotorStatus("statusBuzzer", newStatus)
+            toggleStatus(
+                field = "statusBuzzer",
+                newValue = !currentMotor.statusBuzzer
+            )
         }
     }
 
-    /** Update status ke Firebase */
-    private fun updateMotorStatus(field: String, value: Boolean) {
-        motorRef.child(field).setValue(value)
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Gagal memperbarui status: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
+    private fun toggleStatus(field: String, newValue: Boolean) {
+        isUserAction = true
+
+        currentMotor = when (field) {
+            "statusKelistrikan" -> currentMotor.copy(statusKelistrikan = newValue)
+            "statusStarter" -> currentMotor.copy(statusStarter = newValue)
+            "statusBuzzer" -> currentMotor.copy(statusBuzzer = newValue)
+            else -> currentMotor
+        }
+
+        updateUI(currentMotor)
+        animateCardClick(getCardByField(field))
+
+        motorRef.child(field).setValue(newValue)
+            .addOnCompleteListener { isUserAction = false }
     }
 
-    /** Update semua UI sesuai status motor */
-    private fun updateUI(motor: ModelMotor) {
-        updateCardTint(binding.cardKelistrikan, binding.iconKelistrikan, binding.tvKelistrikanStatus, motor.statusKelistrikan)
-        updateCardTint(binding.cardStarter, binding.iconStarter, binding.tvStarterStatus, motor.statusStarter)
-        updateCardTint(binding.cardBuzzer, binding.iconBuzzer, binding.tvBuzzerStatus, motor.statusBuzzer)
+    private fun getCardByField(field: String): CardView =
+        when (field) {
+            "statusKelistrikan" -> binding.cardKelistrikan
+            "statusStarter" -> binding.cardStarter
+            else -> binding.cardBuzzer
+        }
 
-        if (motor.statusGetar) {
-            binding.cardSensor.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.red)
+    // ================= UPDATE UI =================
+    private fun updateUI(motor: ModelMotor) {
+
+        updateCard(
+            binding.cardKelistrikan,
+            binding.iconKelistrikan,
+            binding.tvKelistrikanStatus,
+            motor.statusKelistrikan
+        )
+
+        updateCard(
+            binding.cardStarter,
+            binding.iconStarter,
+            binding.tvStarterStatus,
+            motor.statusStarter
+        )
+
+        updateCard(
+            binding.cardBuzzer,
+            binding.iconBuzzer,
+            binding.tvBuzzerStatus,
+            motor.statusBuzzer
+        )
+
+        updateSensorUI(motor.statusGetar)
+    }
+
+    private fun updateSensorUI(isActive: Boolean) {
+        if (isActive) {
+            binding.cardSensor.backgroundTintList =
+                ContextCompat.getColorStateList(requireContext(), R.color.red)
+
             binding.iconSensor.setImageResource(R.drawable.ic_shield_on)
             binding.iconSensor.setColorFilter(ContextCompat.getColor(requireContext(), R.color.white))
+
             binding.tvSensorStatus.text = "Motor Bergerak!"
             binding.tvSensorStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         } else {
+            binding.cardSensor.backgroundTintList =
+                ContextCompat.getColorStateList(requireContext(), R.color.card_off)
+
             binding.iconSensor.setImageResource(R.drawable.ic_shield)
             binding.iconSensor.setColorFilter(ContextCompat.getColor(requireContext(), R.color.icon_off))
-            binding.tvSensorStatus.text = "Motor Diam"
+
+            binding.tvSensorStatus.text = "Motor Aman"
             binding.tvSensorStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
         }
     }
 
-    private fun updateCardTint(card: CardView, icon: ImageView, statusText: TextView, isOn: Boolean) {
-        val color = if (isOn) R.color.card_on else R.color.card_off
-        card.backgroundTintList = ContextCompat.getColorStateList(requireContext(), color)
+    private fun updateCard(
+        card: CardView,
+        icon: ImageView,
+        statusText: TextView,
+        isOn: Boolean
+    ) {
+        card.backgroundTintList = ContextCompat.getColorStateList(
+            requireContext(),
+            if (isOn) R.color.card_on else R.color.card_off
+        )
 
         icon.setColorFilter(
             ContextCompat.getColor(
@@ -128,6 +182,7 @@ class HomeFragment : Fragment() {
                 if (isOn) R.color.icon_on else R.color.icon_off
             )
         )
+
         statusText.text = if (isOn) "ON" else "OFF"
         statusText.setTextColor(
             ContextCompat.getColor(
@@ -137,20 +192,22 @@ class HomeFragment : Fragment() {
         )
     }
 
+    // ================= ANIMASI =================
     private fun animateCardClick(card: CardView) {
         card.animate()
             .scaleX(0.9f)
             .scaleY(0.9f)
-            .setDuration(100)
+            .setDuration(80)
             .withEndAction {
-                card.animate().scaleX(1f).scaleY(1f).duration = 100
+                card.animate().scaleX(1f).scaleY(1f).setDuration(80)
             }
     }
 
+    // ================= LIFECYCLE =================
     override fun onDestroyView() {
         super.onDestroyView()
-        // Hentikan listener sebelum view dihancurkan
         motorRef.removeEventListener(motorListener)
         _binding = null
     }
 }
+

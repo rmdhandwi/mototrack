@@ -1,28 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
-
+    android:layout_height="match_parent">
     <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <Button
+        <SearchView
+            android:id="@+id/searchTanggal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Riwayat 1"/>
+            android:queryHint="Cari tanggal (contoh: 2026-01)"
+            android:iconifiedByDefault="false"
+            tools:ignore="HardcodedText" />
 
-        <Button
+        <!-- ===== LIST TANGGAL ===== -->
+        <ScrollView
+            android:id="@+id/layoutTanggal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Riwayat 2"/>
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            tools:ignore="SpeakableTextPresentCheck">
 
-        <Button
+            <LinearLayout
+                android:id="@+id/containerTanggal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
+        <!-- ===== MAP ===== -->
+        <LinearLayout
+            android:id="@+id/layoutMap"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Riwayat 3"/>
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:orientation="vertical">
 
+            <Button
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="← Kembali"
+                tools:ignore="HardcodedText,TextContrastCheck" />
+
+            <FrameLayout
+                android:id="@+id/mapContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </LinearLayout>
     </LinearLayout>
-</ScrollView>
+</FrameLayout>
