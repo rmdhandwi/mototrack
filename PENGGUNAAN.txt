@@ -1,0 +1,172 @@
+========================================================================
+             PETUNJUK PENGGUNAAN DAN KONFIGURASI MOTOTRACK
+========================================================================
+MotoTrack adalah sistem pelacak sepeda motor dan pengaman berbasis IoT 
+(Internet of Things) menggunakan NodeMCU ESP8266, GPS, Firebase Realtime 
+Database, dan Aplikasi Android berbasis Kotlin.
+
+Dokumen ini berisi informasi lengkap mengenai skema pengkabelan, 
+konfigurasi sistem, struktur database Firebase, serta cara pengoperasian.
+
+------------------------------------------------------------------------
+1. KEBUTUHAN PERANGKAT KERAS (HARDWARE)
+------------------------------------------------------------------------
+- 1x NodeMCU ESP8266
+- 1x Modul GPS (NEO-6M / Ublox / TinyGPS kompatibel)
+- 1x Sensor Getar (SW-420 atau sejenisnya)
+- 1x Active Buzzer (Alarm fisik di motor)
+- 1x Modul Relay 2 Channel (Kelistrikan & Starter)
+- Kabel jumper secukupnya
+
+------------------------------------------------------------------------
+2. SKEMA PENGKABELAN (PIN MAPPING)
+------------------------------------------------------------------------
+Hubungkan pin komponen ke NodeMCU ESP8266 sesuai daftar berikut:
+
+| Komponen            | Pin Komponen | Pin NodeMCU ESP8266 |
+|---------------------|--------------|---------------------|
+| Sensor Getar        | DO / OUT     | D5                  |
+| Active Buzzer       | VCC / (+)    | D0                  |
+| Relay 1 (Ignition)  | IN1          | D1                  |
+| Relay 2 (Starter)   | IN2          | D2                  |
+| Modul GPS           | TX           | D6 (Software RX)    |
+| Modul GPS           | RX           | D7 (Software TX)    |
+
+Catatan:
+* Hubungkan pin VCC/GND setiap komponen ke VCC (3.3V/5V) dan GND NodeMCU.
+* Pin RX pada GPS dihubungkan ke TX NodeMCU (D7).
+* Pin TX pada GPS dihubungkan ke RX NodeMCU (D6).
+
+------------------------------------------------------------------------
+3. KONFIGURASI FIRMWARE IOT (KODE ARDUINO)
+------------------------------------------------------------------------
+File kode IoT berada di folder: /kode/kode.ino
+
+Sebelum mengunggah kode ke NodeMCU ESP8266, pastikan library berikut
+sudah terinstall di Arduino IDE:
+1. ESP8266WiFi (Bawaan board ESP8266)
+2. Firebase_ESP_Client (oleh Mobizt)
+3. TinyGPSPlus (oleh Mikal Hart)
+4. SoftwareSerial (Bawaan ESP8266)
+
+Sesuaikan kredensial di bagian atas kode.ino:
+- WIFI_SSID : Nama Wi-Fi target
+- WIFI_PASSWORD : Password Wi-Fi
+- API_KEY : Web API Key dari Project Firebase
+- DATABASE_URL : URL Realtime Database Anda
+- DATABASE_SECRET : Kunci Rahasia Database (Database Secret)
+
+------------------------------------------------------------------------
+4. KONFIGURASI APLIKASI ANDROID
+------------------------------------------------------------------------
+Aplikasi Android dikembangkan menggunakan Kotlin. Beberapa konfigurasi 
+penting yang perlu diperhatikan:
+
+A. Firebase Integration:
+   - File konfigurasi '/app/google-services.json' sudah diatur untuk 
+     Firebase project `mototrack-33904`. Jika ingin memindahkan project, 
+     silakan unduh file google-services.json baru dari Firebase Console 
+     dan timpa file tersebut.
+
+B. Mapbox integration:
+   - Token Mapbox untuk memuat peta didefinisikan pada file:
+     /app/src/main/res/values/strings.xml (mapbox_access_token)
+   - SDK Mapbox didownload dengan token otentikasi di file:
+     /gradle.properties (MAPBOX_DOWNLOADS_TOKEN)
+
+------------------------------------------------------------------------
+5. SKEMA DATABASE FIREBASE & REKOMENDASI PENTING (BACA INI!)
+------------------------------------------------------------------------
+Aplikasi Android dan Firmware ESP8266 berkomunikasi secara dua arah (realtime) 
+melalui Firebase Realtime Database dengan struktur berikut:
+
+Motor/
+ ├── statusKelistrikan (Boolean): Mengaktifkan Relay 1 (Kelistrikan Motor)
+ ├── statusStarter (Boolean)    : Mengaktifkan Relay 2 (Starter Motor)
+ ├── statusBuzzer (Boolean)     : Menentukan alarm sirene di HP aktif/tidak
+ └── statusGetar (Boolean)      : Bernilai true jika sensor getar terdeteksi
+
+### ⚠️ PERBEDAAN SCHEMA LOKASI (PENTING UNTUK SKRIPSI/PENGEMBANGAN)
+Saat ini terdapat perbedaan cara penulisan/pembacaan GPS antara kode ESP8266 
+dan kode Android:
+
+1. Di Arduino (kode.ino):
+   Data GPS dikirim ke root path secara datar:
+   - trackingMap/latitude
+   - trackingMap/longitude
+   - trackingMap/time
+
+2. Di Aplikasi Android (MapFragment.kt & HistoryFragment.kt):
+   Aplikasi membaca data koordinat berdasarkan tanggal hari ini (Format: YYYY-MM-DD):
+   - trackingMap/{tanggal}/current/latitude
+   - trackingMap/{tanggal}/current/longitude
+   - trackingMap/{tanggal}/history/{index}/lat & lon
+
+*Solusi untuk Integrasi Sempurna:*
+Ubah fungsi `kirimLokasi` pada /kode/kode.ino agar mengirim data ke path tanggal.
+Contoh penyesuaian kode Arduino jika ingin menyimpan history harian secara dinamis:
+
+```cpp
+void kirimLokasi(float lat, float lon) {
+  char pathCurrent[50];
+  char pathHistory[50];
+  
+  // Format tanggal hari ini, contoh: "2026-06-09"
+  // Anda bisa mendapatkan tanggal dari gps.date (gps.date.year(), gps.date.month(), gps.date.day())
+  char dateStr[12];
+  sprintf(dateStr, "%04d-%02d-%02d", gps.date.year(), gps.date.month(), gps.date.day());
+  
+  sprintf(pathCurrent, "trackingMap/%s/current", dateStr);
+  sprintf(pathHistory, "trackingMap/%s/history", dateStr);
+
+  // Kirim posisi saat ini (Current)
+  Firebase.RTDB.setFloat(&fbdo, strcat(pathCurrent, "/latitude"), lat);
+  Firebase.RTDB.setFloat(&fbdo, strcat(pathCurrent, "/longitude"), lon);
+  
+  // Kirim ke history (Menggunakan push / append)
+  FirebaseJson json;
+  json.add("lat", lat);
+  json.add("lon", lon);
+  Firebase.RTDB.pushJSON(&fbdo, pathHistory, &json);
+  
+  Serial.println("Lokasi terkirim ke database!");
+}
+```
+
+------------------------------------------------------------------------
+6. ALUR PENGGUNAAN & PENGUJIAN SISTEM
+------------------------------------------------------------------------
+Setelah hardware dirakit dan aplikasi diinstal pada smartphone:
+
+1. Registrasi & Login:
+   - Jalankan aplikasi Android. Lakukan registrasi akun baru terlebih dahulu.
+   - Login menggunakan akun yang telah dibuat.
+
+2. Monitoring Status Motor (HomeFragment):
+   - Buka menu Home. Anda akan melihat status "Motor Aman" (jika statusGetar = false).
+   - Pastikan NodeMCU terhubung ke internet.
+
+3. Menyalakan/Mematikan Kelistrikan:
+   - Tekan tombol "Kelistrikan" di aplikasi Android.
+   - Status akan berubah menjadi ON di database, dan Relay 1 (D1) pada motor akan aktif (ON).
+
+4. Starter Motor:
+   - Tekan tombol "Starter" di aplikasi Android.
+   - Relay 2 (D2) akan aktif sesaat untuk menyalakan starter mesin motor.
+
+5. Pengaman Getaran & Alarm:
+   - Aktifkan fitur "Buzzer" di aplikasi Android.
+   - Jika sepeda motor mengalami getaran/guncangan (Sensor Getar D5 membaca HIGH):
+     a. NodeMCU akan langsung menyalakan Buzzer fisik di motor.
+     b. NodeMCU mengirim `statusGetar = true` ke Firebase.
+     c. Aplikasi Android mendeteksi getaran, memunculkan notifikasi "🚨 MOTOR BERGERAK!", 
+        dan membunyikan sirene kencang di smartphone user.
+     d. Sirene di HP akan otomatis mati jika getaran pada motor berhenti.
+
+6. Pelacakan Posisi GPS (Map & History):
+   - Menu Map: Menampilkan lokasi real-time sepeda motor di peta (menggunakan Mapbox).
+   - Menu History: Menampilkan riwayat rute perjalanan motor berdasarkan tanggal yang dipilih.
+
+========================================================================
+                        Dibuat untuk Project MotoTrack
+========================================================================
